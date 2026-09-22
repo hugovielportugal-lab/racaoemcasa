@@ -1,0 +1,30 @@
+SITE NOVO — RAÇÃO EM CASA (racaoemcasa.com)
+
+Ficheiros
+  index.html         página inicial da loja (o antigo loja.html, já sem nada do consultório)
+  admin.html         painel de gestão, só com Pedidos, Stock, Clientes, Avaliações e Cupões
+  produtos-data.js   catálogo de produtos
+  privacidade.html   ⚠️ AVISO: copiado do Centro Veterinário como ponto de partida — precisa de
+  termos.html            ser reescrito para falar da loja, não do consultório, antes de publicar
+  logótipos das marcas parceiras (zoetis, msd, krka, ownat, royal canin, zolux, schesir, ferribiella)
+
+Continua ligado à mesma base de dados (Firebase) de sempre — os mesmos pedidos, o mesmo stock,
+os mesmos cupões. Só muda o site/painel por onde se acede.
+
+Por decidir/confirmar antes de publicar
+  1. Nome "Ração em Casa": usei este nome por ser a leitura natural do domínio racaoemcasa.com.
+     Se preferirem outro nome, procurem "Ração em Casa" em index.html e admin.html e troquem.
+  2. Logótipo: por agora o cabeçalho é só texto ("Ração em Casa"). Se quiserem uma imagem/logótipo
+     a sério, digam-me e preparo um.
+  3. E-mail de contacto: pus um exemplo, encomendas@racaoemcasa.com — trocar por um e-mail real
+     (procurar "TODO" em index.html).
+  4. Redes sociais: os ícones de Facebook/Instagram do consultório foram retirados, porque a loja
+     ainda não tem redes próprias. Quando tiverem, digam-me e eu acrescento.
+  5. Google Analytics: ficou desligado (estava a mandar os dados para a conta do consultório).
+     Para ligar, criem uma propriedade GA4 só para este site e ponham o ID (começa por "G-") na
+     primeira linha de <script> do index.html, onde diz "var GA_ID = '';".
+
+Publicação
+  São ficheiros estáticos — o mesmo processo que já usámos no site do Grupo (GitHub Pages) serve
+  aqui também. Criem o repositório na conta nova do GitHub, enviem estes ficheiros e depois liguem
+  o domínio racaoemcasa.com a esse repositório (digo-vos os registos DNS certos quando chegarmos lá).
