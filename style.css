@@ -1,25 +1,26 @@
 /* ============================================================
-   Centro Veterinário Linda-a-Velha — v3
-   Fonte: Montserrat
-   Paleta: azul-marinho #002845 + turquesa #00949C + preto #1A1A1A + branco
-   Botões: pílula, secções alternadas cinza/branco, CTA "ilha" flutuante
+   Ração em Casa — visual proprio (v1)
+   Fonte: Fredoka (titulos) + Inter (texto)
+   Paleta: verde-pinho #21402C + dourado #E2A63B + creme quente #FFFDF6
+   Botoes: pilula, seccoes alternadas creme/branco, CTA "ilha" flutuante
    ============================================================ */
+@import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Inter:wght@400;500;600&display=swap');
 
 :root {
-    --navy: #002845;
-    --navy-2: #0d3f66;
-    --teal: #00949c;
-    --ink: #1a1a1a;
-    --gray: #5b6672;
-    --gray-light: #8894a0;
-    --bg: #ffffff;
-    --bg-alt: #f4f6f8;
-    --blue-soft: #e3f4f5;
-    --border: #e5e8eb;
+    --navy: #21402c;
+    --navy-2: #16301f;
+    --teal: #e2a63b;
+    --ink: #23301c;
+    --gray: #5c5341;
+    --gray-light: #8a806b;
+    --bg: #fffdf6;
+    --bg-alt: #f5eeda;
+    --blue-soft: #f5e4be;
+    --border: #e6d8b3;
     --green: #22a559;
 
-  --font: "Montserrat", "Segoe UI", sans-serif;
-    --font-display: "Montserrat", "Segoe UI", sans-serif;
+  --font: "Inter", "Segoe UI", sans-serif;
+    --font-display: "Fredoka", "Segoe UI", sans-serif;
     --radius-pill: 999px;
     --radius-card: 16px;
     --container: 1180px;
@@ -423,17 +424,16 @@ footer.site { background: #fff; padding: 64px 0 32px; border-top: 1px solid var(
 
 
 /* ============================================================
-   Tema do Grupo do meu melhor amigo (index, blog e loja)
-   Cores do manual de marca: azul-marinho #002845, turquesa #00949C, preto #1A1A1A
-   Tons de apoio iguais aos do site do Grupo: creme-azulado #EEF4F6, turquesa escuro #00767D
+   Tema proprio da Racao em Casa
+   Verde-pinho #21402C, dourado #E2A63B, creme quente #FFFDF6
    ============================================================ */
 body.tema-grupo {
-    --bg-alt: #eef4f6;
-    --gray: #3a4a54;
-    --gray-light: #5f7280;
-    --border: #d3dfe4;
-    --blue-soft: #dcf1f2;
-    --teal-deep: #00767d;
+    --bg-alt: #f5eeda;
+    --gray: #5c5341;
+    --gray-light: #8a806b;
+    --border: #e6d8b3;
+    --blue-soft: #f5e4be;
+    --teal-deep: #b97e22;
 }
 .tema-grupo h1, .tema-grupo h2 { color: var(--navy); font-weight: 800; letter-spacing: -0.02em; }
 .tema-grupo h3 { color: var(--navy); }
@@ -441,10 +441,10 @@ body.tema-grupo {
 
 .tema-grupo .hero { background: var(--navy); }
 .tema-grupo .hero h1 { color: #fff; }
-.tema-grupo .hero-copy p.lead { color: #dbe7ee; }
-.tema-grupo .opening-soon-badge { background: rgba(255,255,255,0.12); color: #7fd6db; }
+.tema-grupo .hero-copy p.lead { color: #e9dfc4; }
+.tema-grupo .opening-soon-badge { background: rgba(255,255,255,0.12); color: #f3cf8f; }
 .tema-grupo .hero-actions .btn-navy { background: var(--teal); }
-.tema-grupo .hero-actions .btn-navy:hover { background: #00a7b0; }
+.tema-grupo .hero-actions .btn-navy:hover { background: #cf9530; }
 .tema-grupo .hero-brands { background: #fff; border-radius: 16px; padding: 16px 20px; display: inline-block; max-width: 100%; }
 .tema-grupo .hero-brands-label { color: var(--navy); }
 
@@ -453,7 +453,7 @@ body.tema-grupo {
 .tema-grupo .card .icon-badge, .tema-grupo .team-card .avatar { background: var(--blue-soft); color: var(--teal-deep); }
 .tema-grupo .cta-island h2 { color: #fff; }
 .tema-grupo .btn-teal-solid { background: var(--teal); color: #fff; }
-.tema-grupo .btn-teal-solid:hover { background: #00a7b0; transform: translateY(-1px); }
+.tema-grupo .btn-teal-solid:hover { background: #cf9530; transform: translateY(-1px); }
 
 .grupo-band { background: var(--bg-alt); padding: 56px 0 0; }
 .grupo-band-inner {
@@ -461,15 +461,15 @@ body.tema-grupo {
     display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 22px 40px;
 }
 .grupo-band-inner img { height: 48px; width: auto; }
-.grupo-band-inner p { color: #dbe7ee; margin: 0; flex: 1 1 18rem; font-weight: 600; }
+.grupo-band-inner p { color: #e9dfc4; margin: 0; flex: 1 1 18rem; font-weight: 600; }
 @media (max-width: 600px) { .grupo-band-inner { padding: 28px 24px; border-radius: 20px; } }
 
-.tema-grupo footer.site { background: #1a1a1a; border-top: 0; }
+.tema-grupo footer.site { background: #182619; border-top: 0; }
 .tema-grupo footer.site h4, .tema-grupo footer.site strong { color: #fff !important; }
-.tema-grupo footer.site p, .tema-grupo footer.site a, .tema-grupo footer.site .footer-contact .row { color: #d6dde1 !important; }
+.tema-grupo footer.site p, .tema-grupo footer.site a, .tema-grupo footer.site .footer-contact .row { color: #d9d0b8 !important; }
 .tema-grupo footer.site a:hover { color: #fff !important; }
-.tema-grupo footer.site .footer-contact svg { color: #7fd6db; }
-.tema-grupo footer.site .footer-bottom { border-top-color: #3a3f42; }
-.tema-grupo footer.site .footer-bottom, .tema-grupo footer.site .footer-bottom * { color: #aab6bd !important; }
+.tema-grupo footer.site .footer-contact svg { color: #f0c987; }
+.tema-grupo footer.site .footer-bottom { border-top-color: #33392b; }
+.tema-grupo footer.site .footer-bottom, .tema-grupo footer.site .footer-bottom * { color: #a89f87 !important; }
 .tema-grupo footer.site .socials a { background: rgba(255, 255, 255, 0.14) !important; color: #fff !important; }
 .tema-grupo footer.site .socials a:hover { background: var(--teal) !important; }

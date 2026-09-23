@@ -30,11 +30,11 @@
     if (localStorage.getItem('cookie_consent')) return;
     var b = document.createElement('div');
     b.id = 'cookieBanner';
-    b.style.cssText = 'position:fixed;left:0;right:0;bottom:0;z-index:9999;background:#002845;color:#fff;padding:16px 20px;display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:14px;font-family:Montserrat,sans-serif;font-size:0.9rem;box-shadow:0 -2px 12px rgba(0,0,0,.15);';
-    b.innerHTML = '<span style="max-width:520px;">Usamos cookies de análise (Google Analytics) para perceber como o site é usado. Pode aceitar ou recusar. <a href="privacidade.html" style="color:#9fd8dc;text-decoration:underline;">Saber mais</a></span>' +
+    b.style.cssText = 'position:fixed;left:0;right:0;bottom:0;z-index:9999;background:#21402c;color:#fff;padding:16px 20px;display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:14px;font-family:Inter,sans-serif;font-size:0.9rem;box-shadow:0 -2px 12px rgba(0,0,0,.15);';
+    b.innerHTML = '<span style="max-width:520px;">Usamos cookies de análise (Google Analytics) para perceber como o site é usado. Pode aceitar ou recusar. <a href="privacidade.html" style="color:#f3cf8f;text-decoration:underline;">Saber mais</a></span>' +
       '<span style="display:flex;gap:10px;">' +
       '<button id="cookieDecline" style="background:transparent;color:#fff;border:1px solid #fff;border-radius:999px;padding:8px 16px;cursor:pointer;font-family:inherit;font-size:0.85rem;">Recusar</button>' +
-      '<button id="cookieAccept" style="background:#00949c;color:#fff;border:none;border-radius:999px;padding:8px 16px;cursor:pointer;font-family:inherit;font-size:0.85rem;font-weight:600;">Aceitar</button>' +
+      '<button id="cookieAccept" style="background:#e2a63b;color:#2a1c00;border:none;border-radius:999px;padding:8px 16px;cursor:pointer;font-family:inherit;font-size:0.85rem;font-weight:600;">Aceitar</button>' +
       '</span>';
     document.body.appendChild(b);
     document.getElementById('cookieAccept').onclick = function(){
@@ -51,7 +51,7 @@
 </script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=4">
+<link rel="stylesheet" href="style.css?v=5">
 <style>
 /* ---------- Store-specific styles ---------- */
 .store-hero {
@@ -464,7 +464,7 @@
     <p class="store-hero-lead">Ração, suplementos e acessórios para o seu animal. Entregamos só em Algés, Miraflores, Linda-a-Velha e Carnaxide — fora destas zonas não conseguimos entregar. Escolha os produtos e pague no ato da entrega.</p>
     <div class="store-hero-steps">
       <div class="store-hero-step"><span>1</span> Escolha os produtos</div>
-      <div class="store-hero-step"><span>2</span> Confirme a morada (só Algés, Miraflores, Linda-a-Velha ou Carnaxide)</div>
+      <div class="store-hero-step"><span>2</span> Confirme que mora em Algés, Miraflores, Linda-a-Velha ou Carnaxide</div>
       <div class="store-hero-step"><span>3</span> Pague no ato da entrega</div>
     </div>
   </div>
