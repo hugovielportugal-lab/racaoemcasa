@@ -623,6 +623,8 @@
   <div class="checkout-form open" style="margin-top:0;">
     <input type="text" id="authName" placeholder="O seu nome" style="display:none;">
     <input type="tel" id="authPhone" placeholder="Telefone / WhatsApp" style="display:none;">
+    <textarea id="authMorada" rows="2" placeholder="Morada (rua, número, código-postal) — Algés, Miraflores, Linda-a-Velha ou Carnaxide" style="display:none; width:100%; padding:13px 16px; border:1.5px solid #dde3e6; border-radius:10px; font-size:0.92rem; font-family:inherit; resize:vertical;"></textarea>
+    <input type="text" id="authNif" placeholder="NIF (opcional, para fatura)" style="display:none;">
     <div class="auth-animais" id="authAnimais" style="display:none;">
       <span class="auth-animais-label">Tem:</span>
       <label><input type="checkbox" id="authAnimalCao"> Cão</label>
@@ -755,6 +757,16 @@ firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
 emailjs.init({ publicKey: "NJxFDw-frdjZmQFCD" });
+// Limpa texto escrito por clientes antes de gravar (tira "<" e ">" para nao deixar guardar codigo/HTML).
+function sanitizeInput(str, max) {
+  return (str || '').toString().replace(/[<>]/g, '').trim().slice(0, max || 300);
+}
+// Impede que texto de clientes (nome, comentario) seja interpretado como codigo quando aparece no ecra.
+function esc(str) {
+  if (str == null) return '';
+  return String(str).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+let perfilAtual = null; // dados do perfil do cliente (nome, telefone, morada, nif), carregados ao abrir o checkout
 
 // ---------- Pagamento online (Stripe) ----------
 // Payment Link do tipo "Customers choose what to pay", criado no Stripe Dashboard.
@@ -816,6 +828,8 @@ function setAuthMode(mode) {
   document.getElementById('tabRegister').classList.toggle('active', mode === 'register');
   document.getElementById('authName').style.display = mode === 'register' ? 'block' : 'none';
   document.getElementById('authPhone').style.display = mode === 'register' ? 'block' : 'none';
+  document.getElementById('authMorada').style.display = mode === 'register' ? 'block' : 'none';
+  document.getElementById('authNif').style.display = mode === 'register' ? 'block' : 'none';
   document.getElementById('authAnimais').style.display = mode === 'register' ? 'flex' : 'none';
   document.getElementById('authPasswordHint').style.display = mode === 'register' ? 'block' : 'none';
   document.getElementById('authTitle').textContent = mode === 'register' ? 'Criar conta' : 'Entrar';
@@ -1047,6 +1061,10 @@ function submitAuth() {
     if (!name) { showAuthError('Preencha o seu nome.'); return; }
     const phone = document.getElementById('authPhone').value.trim();
     if (!phone) { showAuthError('Preencha o telefone.'); return; }
+    const morada = document.getElementById('authMorada').value.trim();
+    if (!morada) { showAuthError('Preencha a morada (so entregamos em Alges, Miraflores, Linda-a-Velha ou Carnaxide).'); return; }
+    const nifInput = document.getElementById('authNif').value.trim();
+    if (nifInput && !/^\d{9}$/.test(nifInput)) { showAuthError('O NIF, se preenchido, tem de ter 9 numeros.'); return; }
     const temCao = document.getElementById('authAnimalCao').checked;
     const temGato = document.getElementById('authAnimalGato').checked;
     if (!temCao && !temGato) { showAuthError('Selecione pelo menos um: Cão ou Gato.'); return; }
@@ -1058,7 +1076,8 @@ function submitAuth() {
       .then(cred => Promise.all([
         cred.user.updateProfile({ displayName: name }),
         db.collection('clientes').doc(cred.user.uid).set({
-          nome: name, email: email, telefone: phone, animais: animais,
+          nome: sanitizeInput(name, 100), email: email, telefone: sanitizeInput(phone, 30),
+          morada: sanitizeInput(morada, 200), nif: nifInput || null, animais: animais,
           criadoEm: firebase.firestore.FieldValue.serverTimestamp()
         }),
         cred.user.sendEmailVerification()
@@ -1377,8 +1396,8 @@ function loadReviews(productId) {
           const dataStr = r.criadoEm && r.criadoEm.toDate ? r.criadoEm.toDate().toLocaleDateString('pt-PT') : '';
           return `
             <div class="review-item">
-              <div class="review-head"><span class="stars-display">${renderStarsDisplay(r.estrelas)}</span><strong>${r.nome || 'Cliente'}</strong><span class="review-date">${dataStr}</span></div>
-              ${r.comentario ? `<p class="review-comment">${r.comentario}</p>` : ''}
+              <div class="review-head"><span class="stars-display">${renderStarsDisplay(r.estrelas)}</span><strong>${esc(r.nome) || 'Cliente'}</strong><span class="review-date">${dataStr}</span></div>
+              ${r.comentario ? `<p class="review-comment">${esc(r.comentario)}</p>` : ''}
             </div>`;
         }).join('');
     renderReviewFormArea(productId, all).then(formHtml => {
@@ -1425,7 +1444,7 @@ function submitReview(productId) {
   const widget = document.getElementById(`reviewStarsInput-${productId}`);
   const estrelas = parseInt(widget.dataset.value || '0', 10);
   if (!estrelas) { alert('Escolha de 1 a 5 estrelas.'); return; }
-  const comentario = document.getElementById(`reviewComment-${productId}`).value.trim();
+  const comentario = sanitizeInput(document.getElementById(`reviewComment-${productId}`).value.trim(), 600);
   db.collection('avaliacoes').add({
     produtoId: productId,
     uid: user.uid,
@@ -1694,11 +1713,11 @@ function showCheckout() {
   verifyBanner.style.display = emailVerified ? 'none' : 'block';
   confirmBtn.disabled = !emailVerified;
   confirmBtn.style.opacity = emailVerified ? '1' : '0.5';
-  if (!document.getElementById('ckPhone').value) {
-    db.collection('clientes').doc(user.uid).get().then(doc => {
-      if (doc.exists && doc.data().telefone) document.getElementById('ckPhone').value = doc.data().telefone;
-    }).catch(() => {});
-  }
+  db.collection('clientes').doc(user.uid).get().then(doc => {
+    perfilAtual = doc.exists ? doc.data() : null;
+    if (!document.getElementById('ckPhone').value && perfilAtual && perfilAtual.telefone) document.getElementById('ckPhone').value = perfilAtual.telefone;
+    if (!document.getElementById('ckMorada').value && perfilAtual && perfilAtual.morada) document.getElementById('ckMorada').value = perfilAtual.morada;
+  }).catch(() => { perfilAtual = null; });
   document.getElementById('checkoutForm').classList.add('open');
   openCart();
 }
@@ -1745,10 +1764,10 @@ function decrementStockForCart(cartSnapshot) {
 }
 
 function submitOrder() {
-  const phone = document.getElementById('ckPhone').value.trim();
+  const phone = sanitizeInput(document.getElementById('ckPhone').value.trim(), 30);
   const payMethod = 'loja'; // pagamento sempre no ato (dinheiro, MB WAY ou cartão), na entrega
   const deliveryMethod = currentDeliveryMethod();
-  const deliveryAddress = document.getElementById('ckMorada').value.trim();
+  const deliveryAddress = sanitizeInput(document.getElementById('ckMorada').value.trim(), 200);
   const user = auth.currentUser;
   if (!user) { showCheckout(); return; }
   if (!user.emailVerified) { alert('Precisa de confirmar o seu e-mail antes de finalizar a compra. Verifique a caixa de entrada, ou use o botão "Reenviar e-mail de confirmação".'); return; }
@@ -1800,6 +1819,7 @@ function finalizarSubmitOrder(user, phone, payMethod, deliveryMethod, deliveryAd
     metodoEntrega: deliveryMethod,
     taxaEntrega: deliveryFee,
     moradaEntrega: deliveryMethod === 'entrega' ? deliveryAddress : '',
+    nif: (perfilAtual && perfilAtual.nif) || null,
     criadoEm: firebase.firestore.FieldValue.serverTimestamp()
   })).then((docRef) => {
     // Regista "compra verificada" por produto, para permitir avaliações mais tarde

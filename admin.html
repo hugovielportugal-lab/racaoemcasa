@@ -411,6 +411,11 @@ const auth = firebase.auth();
 const db = firebase.firestore();
 
 const ADMIN_EMAIL = "cvlindaavelha@outlook.com";
+// Impede que texto escrito por clientes (nome, morada, etc.) seja interpretado como codigo quando aparece no ecra.
+function esc(str) {
+  if (str == null) return '';
+  return String(str).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
 let allOrders = [];
 let currentFilter = 'pendente';
 let openHistoryFor = null; // id do pedido cujo histórico está aberto
@@ -573,14 +578,15 @@ function renderOrders() {
 
     const wa = waLink(o.telefone);
     const contactHtml = `
-      ${o.email ? `<a href="mailto:${o.email}">${o.email}</a>` : ''}
-      ${o.telefone ? ' · ' + (wa ? `<a class="contact-wa" href="${wa}" target="_blank" rel="noopener">💬 ${o.telefone}</a>` : o.telefone) : ' · sem telefone'}
+      ${o.email ? `<a href="mailto:${esc(o.email)}">${esc(o.email)}</a>` : ''}
+      ${o.telefone ? ' · ' + (wa ? `<a class="contact-wa" href="${wa}" target="_blank" rel="noopener">💬 ${esc(o.telefone)}</a>` : esc(o.telefone)) : ' · sem telefone'}
       · ${data}
     `;
     // Pedidos anteriores a esta funcionalidade não têm "metodoEntrega" gravado — assume-se levantamento na loja.
     const entregaHtml = o.metodoEntrega === 'entrega'
-      ? `<div class="admin-order-delivery">🚚 Entrega em Linda-a-Velha${o.moradaEntrega ? ' — ' + o.moradaEntrega : ''}</div>`
+      ? `<div class="admin-order-delivery">🚚 Entrega${o.moradaEntrega ? ' — ' + esc(o.moradaEntrega) : ''}</div>`
       : '';
+    const nifHtml = o.nif ? `<div class="admin-order-delivery" style="background:var(--mist);">🧾 NIF ${esc(o.nif)}</div>` : '';
 
     const history = getCustomerHistory(o);
     const historyOpen = openHistoryFor === o.id;
@@ -601,9 +607,10 @@ function renderOrders() {
       <div class="order-card">
         <div class="order-top">
           <div>
-            <div class="order-client">${o.nome || o.email}</div>
+            <div class="order-client">${esc(o.nome) || esc(o.email)}</div>
             <div class="order-meta">${contactHtml}</div>
             ${entregaHtml}
+            ${nifHtml}
           </div>
           <div class="order-top-right">
             <span class="status-badge status-${o.estado}">${statusLabel(o.estado)}</span>
@@ -927,10 +934,10 @@ function loadAvaliacoes() {
           <div class="order-top">
             <div>
               <div class="order-client">${p ? p.name : 'Produto #' + r.produtoId}</div>
-              <div class="order-meta">${r.nome || 'Cliente'} · ${renderStarsDisplay(r.estrelas)} · ${dataStr}${r.oculta ? ' · <strong>OCULTA</strong>' : ''}</div>
+              <div class="order-meta">${esc(r.nome) || 'Cliente'} · ${renderStarsDisplay(r.estrelas)} · ${dataStr}${r.oculta ? ' · <strong>OCULTA</strong>' : ''}</div>
             </div>
           </div>
-          ${r.comentario ? `<div class="order-items"><div class="order-item-row"><span>${r.comentario}</span></div></div>` : ''}
+          ${r.comentario ? `<div class="order-items"><div class="order-item-row"><span>${esc(r.comentario)}</span></div></div>` : ''}
           <div class="order-actions">
             <button onclick="toggleAvaliacaoOculta('${doc.id}', ${!r.oculta})">${r.oculta ? 'Mostrar' : 'Ocultar'}</button>
             <button onclick="deleteAvaliacao('${doc.id}')">Eliminar</button>
@@ -1001,14 +1008,14 @@ function renderClientesList() {
   listEl.innerHTML = filtrados.map(c => {
     const wa = waLink(c.telefone);
     const animaisTags = (c.animais || []).map(a =>
-      `<span class="animal-tag">${a.nome}${a.especie ? ' · ' + a.especie : ''}${a.sexo ? ' · ' + a.sexo : ''}${a.raca ? ' · ' + a.raca : ''}${a.chip ? ' · chip ' + a.chip : ''}</span>`
+      `<span class="animal-tag">${esc(a.nome)}${a.especie ? ' · ' + esc(a.especie) : ''}${a.sexo ? ' · ' + esc(a.sexo) : ''}${a.raca ? ' · ' + esc(a.raca) : ''}${a.chip ? ' · chip ' + esc(a.chip) : ''}</span>`
     ).join('');
     return `
       <div class="order-card cliente-card">
         <div class="order-top">
           <div>
-            <div class="order-client">${c.nome}${c.nif ? ' · NIF ' + c.nif : ''}${c.origem === 'marcacao_online' ? ' <span class="animal-tag" style="background:#fff3cd;color:#8a6d00;">via marcação online</span>' : ''}</div>
-            <div class="order-meta">${c.telefone || ''}${c.email ? ' · ' + c.email : ''}${c.morada ? ' · ' + c.morada : ''}</div>
+            <div class="order-client">${esc(c.nome)}${c.nif ? ' · NIF ' + esc(c.nif) : ''}${c.origem === 'marcacao_online' ? ' <span class="animal-tag" style="background:#fff3cd;color:#8a6d00;">via marcação online</span>' : ''}</div>
+            <div class="order-meta">${esc(c.telefone) || ''}${c.email ? ' · ' + esc(c.email) : ''}${c.morada ? ' · ' + esc(c.morada) : ''}</div>
           </div>
         </div>
         ${animaisTags ? `<div class="animais-tags">${animaisTags}</div>` : ''}
