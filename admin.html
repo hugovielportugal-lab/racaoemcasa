@@ -167,7 +167,7 @@
     <h2>Gestão</h2>
     <p>Acesso restrito à equipa da loja.</p>
     <div class="admin-error" id="loginError"></div>
-    <input type="email" id="adminEmail" placeholder="E-mail" value="cvlindaavelha@outlook.com">
+    <input type="email" id="adminEmail" placeholder="E-mail">
     <input type="password" id="adminPassword" placeholder="Palavra-passe">
     <button class="btn btn-navy" style="width:100%; justify-content:center;" onclick="doLogin()">Entrar</button>
   </div>
@@ -896,7 +896,7 @@ function checkAndNotifyWaitingList(key) {
     const emails = waiting.map(w => w.email);
     if (!confirm(`${waiting.length} pessoa(s) pediram para ser avisadas quando "${produtoNome}" voltasse a ter stock.\n\nVamos abrir o teu e-mail com todos os destinatários prontos — só falta clicares em enviar. Continuar?`)) return;
     const subject = encodeURIComponent(`${produtoNome} já está disponível!`);
-    const body = encodeURIComponent(`Olá!\n\nO produto "${produtoNome}" que pediu para ser avisado(a) já está disponível na Ração em Casa.\n\nPeça já a sua entrega em Linda-a-Velha.\n\nAté já.`);
+    const body = encodeURIComponent(`Olá!\n\nO produto "${produtoNome}" que pediu para ser avisado(a) já está disponível na Ração em Casa.\n\nPeça já a sua entrega em Algés, Miraflores, Linda-a-Velha ou Carnaxide.\n\nAté já.`);
     const mailtoLink = `mailto:?bcc=${emails.join(',')}&subject=${subject}&body=${body}`;
     window.location.href = mailtoLink;
     // Assume que o e-mail foi (ou vai ser) enviado e limpa a lista de espera deste produto
