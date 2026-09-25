@@ -726,7 +726,7 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
-emailjs.init({ publicKey: "NJxFDw-frdjZmQFCD" });
+emailjs.init({ publicKey: "70ql5TbeVI3gFOoxR" });
 // Limpa texto escrito por clientes antes de gravar (tira "<" e ">" para nao deixar guardar codigo/HTML).
 function sanitizeInput(str, max) {
   return (str || '').toString().replace(/[<>]/g, '').trim().slice(0, max || 300);
@@ -1803,15 +1803,26 @@ function finalizarSubmitOrder(user, phone, payMethod, deliveryMethod, deliveryAd
       batch.set(cupomRef, { uid: user.uid, codigo: cupomUsado.codigo, criadoEm: firebase.firestore.FieldValue.serverTimestamp() });
     }
     batch.commit().catch(err => console.error('Falha ao registar compra verificada:', err));
-    const itemsText = items.map(it => `${it.quantidade}x ${it.nome} — ${(it.preco * it.quantidade).toFixed(2)}€`).join('\n');
-    emailjs.send('service_309ip3s', 'template_9enl1od', {
-      from_name: user.displayName || user.email,
-      from_email: user.email,
-      from_phone: phone,
-      order_items: itemsText,
-      order_total: total.toFixed(2)
-    }).catch(err => console.error('Falha ao enviar notificação por e-mail:', err));
-    showPaymentStep(docRef.id, total, payMethod);
+const itemsText = items.map(it => `${it.quantidade}x ${it.nome} — ${(it.preco * it.quantidade).toFixed(2)}€`).join('\n');
+     const orderRef = shortOrderRef(docRef.id);
+         const deliveryInfo = deliveryMethod === 'entrega' ? ('Entrega: ' + deliveryAddress) : 'Levantamento na loja';
+     emailjs.send('service_ghgc13e', 'template_kszucou', {
+     to_email: user.email,
+                            to_name: user.displayName || user.email,
+           order_ref: orderRef,
+          order_items: itemsText,
+          order_total: total.toFixed(2) + '€',
+          delivery_info: deliveryInfo
+     }).catch(err => console.error('Falha ao enviar confirmação ao cliente:', err));
+     emailjs.send('service_ghgc13e', 'template_kszucou', {
+     to_email: 'encomendas@racaoemcasa.com',
+     to_name: 'Equipa Ração em Casa',
+     order_ref: orderRef,
+     order_items: itemsText + '\nTelefone: ' + phone,
+     order_total: total.toFixed(2) + '€',
+     delivery_info: deliveryInfo
+     }).catch(err => console.error('Falha ao enviar notificação interna:', err));
+       showPaymentStep(docRef.id, total, payMethod);
     cart = {};
     appliedCoupon = null;
     saveCart();
