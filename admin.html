@@ -196,8 +196,8 @@
     <div id="pedidosPanel">
       <div class="filter-bar">
         <button class="active" data-f="pendente" onclick="setFilter('pendente', this)">Pendentes</button>
-        <button data-f="pronto" onclick="setFilter('pronto', this)">Prontos</button>
-        <button data-f="entregue" onclick="setFilter('entregue', this)">Entregues</button>
+        <button data-f="pronto" onclick="setFilter('pronto', this)">Prontos a enviar</button>
+        <button data-f="entregue" onclick="setFilter('entregue', this)">Enviados</button>
         <button data-f="cancelado" onclick="setFilter('cancelado', this)">Cancelados</button>
         <button data-f="todos" onclick="setFilter('todos', this)">Todos</button>
       </div>
@@ -505,7 +505,7 @@ function setFilter(f, btn) {
 }
 
 function statusLabel(s) {
-  return { pendente: 'Pendente', pronto: 'Pronto para levantar', entregue: 'Entregue', cancelado: 'Cancelado' }[s] || s;
+  return { pendente: 'Pendente', pronto: 'Pronto para enviar', entregue: 'Enviado', cancelado: 'Cancelado' }[s] || s;
 }
 
 // Número de dias a partir dos quais um pedido ainda não levantado é assinalado como parado.
@@ -553,7 +553,7 @@ function renderOrders() {
       actions = `<button class="primary" onclick="updateStatus('${o.id}','pronto')">Marcar como pronto</button>
                  <button onclick="cancelOrder('${o.id}')">Cancelar pedido</button>`;
     } else if (o.estado === 'pronto') {
-      actions = `<button class="primary" onclick="updateStatus('${o.id}','entregue')">Marcar como entregue</button>
+      actions = `<button class="primary" onclick="updateStatus('${o.id}','entregue')">Marcar como enviado</button>
                  <button onclick="updateStatus('${o.id}','pendente')">Voltar a pendente</button>
                  <button onclick="cancelOrder('${o.id}')">Cancelar pedido</button>`;
     } else if (o.estado === 'cancelado') {
@@ -566,12 +566,12 @@ function renderOrders() {
     // Pedidos anteriores a esta funcionalidade não têm "metodoPagamento" gravado — assume-se pagamento na loja.
     const metodo = o.metodoPagamento || 'loja';
     const pago = !!o.pago;
-    const metodoLabel = metodo === 'online' ? 'Online' : 'Na loja';
+    const metodoLabel = metodo === 'online' ? 'Online' : (metodo === 'mbway_multibanco' ? 'MB WAY/Multibanco' : 'Na loja');
     const refHtml = metodo === 'online' ? ` · ref. ${shortOrderRef(o.id)}` : '';
     const payBadgeHtml = `<span class="pay-badge ${pago ? 'pay-badge-pago' : 'pay-badge-porpagar'}">${pago ? '✓ Pago' : 'Por pagar'} · ${metodoLabel}${refHtml}</span>`;
     const payAction = pago
       ? `<button onclick="togglePago('${o.id}', false)">Desmarcar pago</button>`
-      : `<button class="primary" onclick="togglePago('${o.id}', true)">Marcar como pago</button>`;
+      : `<button class="primary" onclick="togglePago('${o.id}', true)">Marcar como pago</button>` + (metodo === 'mbway_multibanco' ? `<button onclick="pedirPagamento('${o.id}')">Pedir pagamento</button>` : '');
     actions = payAction + actions;
 
     const diasParado = o.criadoEm ? Math.floor((Date.now() - o.criadoEm.toDate().getTime()) / 86400000) : null;
@@ -646,6 +646,22 @@ function pedirAvaliacao(orderId) {
     `Se tiver um minuto, adorávamos saber a sua opinião — a avaliação fica visível na loja e ajuda outros tutores a escolher melhor.\n\n` +
     `Pode avaliar aqui: https://racaoemcasa.com/\n\n` +
     `Obrigado,\nRação em Casa`;
+  window.open(`mailto:${order.email}?subject=${encodeURIComponent(assunto)}&body=${encodeURIComponent(corpo)}`, '_blank');
+}
+
+// Abre um e-mail pronto a enviar ao cliente com o valor a pagar (modo de pagamento manual).
+function pedirPagamento(id) {
+  const order = allOrders.find(o => o.id === id);
+  if (!order) return;
+  const ref = shortOrderRef(order.id);
+  const valor = Number(order.total || 0).toFixed(2).replace('.', ',');
+  const assunto = `Ração em Casa — pagamento da encomenda ${ref}`;
+  const corpo = `Olá${order.nome ? ' ' + order.nome : ''}!\n\n` +
+    `Obrigado pela sua encomenda ${ref} na Ração em Casa.\n\n` +
+    `Valor a pagar: ${valor}€\n\n` +
+    `Pode pagar por MB WAY (enviamos o pedido para o seu telemóvel ${order.telefone || ''}) ou por Multibanco (referência abaixo).\n\n` +
+    `Entidade: ____  Referência: ___ ___ ___\n\n` +
+    `Assim que o pagamento for confirmado, a encomenda segue para envio.\n\nObrigado,\nRação em Casa`;
   window.open(`mailto:${order.email}?subject=${encodeURIComponent(assunto)}&body=${encodeURIComponent(corpo)}`, '_blank');
 }
 
@@ -905,7 +921,7 @@ function checkAndNotifyWaitingList(key) {
     const emails = waiting.map(w => w.email);
     if (!confirm(`${waiting.length} pessoa(s) pediram para ser avisadas quando "${produtoNome}" voltasse a ter stock.\n\nVamos abrir o teu e-mail com todos os destinatários prontos — só falta clicares em enviar. Continuar?`)) return;
     const subject = encodeURIComponent(`${produtoNome} já está disponível!`);
-    const body = encodeURIComponent(`Olá!\n\nO produto "${produtoNome}" que pediu para ser avisado(a) já está disponível na Ração em Casa.\n\nPeça já a sua entrega em Algés, Miraflores, Linda-a-Velha ou Carnaxide.\n\nAté já.`);
+    const body = encodeURIComponent(`Olá!\n\nO produto "${produtoNome}" que pediu para ser avisado(a) já está disponível na Ração em Casa.\n\nEncomende já em racaoemcasa.com — enviamos para todo o Portugal continental.\n\nAté já.`);
     const mailtoLink = `mailto:?bcc=${emails.join(',')}&subject=${subject}&body=${body}`;
     window.location.href = mailtoLink;
     // Assume que o e-mail foi (ou vai ser) enviado e limpa a lista de espera deste produto
