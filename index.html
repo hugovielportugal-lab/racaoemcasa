@@ -192,6 +192,21 @@
 }
 .no-results { color: var(--gray); text-align: center; padding: 40px 0; grid-column: 1 / -1; }
 .product-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; }
+/* Navegação por mosaicos (igual ao portal Ibernop): secção → marca → gama → produtos */
+#storeTabs { display: none !important; }
+.cat-nav { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 0 0 16px; font-size: 0.92rem; color: var(--gray); min-height: 8px; }
+.cat-nav:empty { margin: 0; }
+.cat-nav button { background: none; border: none; font: inherit; color: var(--navy); font-weight: 600; cursor: pointer; padding: 4px 2px; }
+.cat-nav button.voltar { border: 1.5px solid var(--border); border-radius: 999px; padding: 6px 14px; margin-right: 6px; background: #fff; }
+.cat-nav b { color: var(--ink, #222); }
+.tiles { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px; }
+.tile { background: #fff; border: 1px solid var(--border); border-radius: 16px; padding: 14px; cursor: pointer; text-align: left; font: inherit; display: flex; flex-direction: column; gap: 6px; transition: transform .15s, box-shadow .15s; }
+.tile:hover { transform: translateY(-2px); box-shadow: 0 8px 22px rgba(15,59,96,.12); }
+.tile .ti { height: 120px; display: flex; align-items: center; justify-content: center; background: var(--bg-alt); border-radius: 12px; font-size: 3rem; overflow: hidden; }
+.tile .ti img { max-height: 100%; max-width: 100%; object-fit: contain; }
+.tile strong { font-size: 1.02rem; color: var(--navy); line-height: 1.2; }
+.tile small { color: var(--gray); font-weight: 600; font-size: .78rem; }
+@media (max-width: 600px) { .tiles { grid-template-columns: repeat(2, 1fr); gap: 10px; } .tile .ti { height: 90px; font-size: 2.4rem; } .tile { padding: 10px; } }
 @media (max-width: 900px) { .product-grid { grid-template-columns: repeat(2,1fr); } }
 @media (max-width: 600px) { .product-grid { grid-template-columns: 1fr; } }
 
@@ -573,6 +588,7 @@
         </div>
       </div>
     </div>
+    <div class="cat-nav" id="catNav"></div>
     <div class="product-grid" id="productGrid"></div>
   </div>
 </section>
@@ -1203,7 +1219,99 @@ function interleaveByBrand(items) {
   return result;
 }
 
+
+// ---------- Navegação do catálogo por mosaicos (secção → marca → gama → produtos) ----------
+// Tudo é calculado a partir de produtos-data.js: uma marca ou gama nova aparece sozinha.
+let navSec = null, navEsp = null, navMarca = null, navGama = null;
+const SECCOES = [
+  { id: 'cao', nome: 'Alimentação Cão', ico: '🐶', filtro: p => p.type === 'racoes' && (p.species === 'cao' || p.species === 'ambos') },
+  { id: 'gato', nome: 'Alimentação Gato', ico: '🐱', filtro: p => p.type === 'racoes' && (p.species === 'gato' || p.species === 'ambos') },
+  { id: 'vet', nome: 'Dietas Veterinárias', ico: '🩺', filtro: p => p.type === 'racoes-vet' }
+];
+const ORDEM_GAMAS = ['Classic', 'Prime', 'Author', 'Just', 'Care'];
+function escN(t) { return String(t == null ? '' : t).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function jsArg(v) { return v == null ? 'null' : "'" + String(v).replace(/\\/g, '\\\\').replace(/'/g, "\\'") + "'"; }
+function tileN(onclick, nome, lista, ico, extra) {
+  const im = (lista.find(p => p.img) || {}).img;
+  const n = lista.length;
+  return `<button type="button" class="tile" onclick="${onclick}"><div class="ti">${im ? `<img src="${im}" alt="" loading="lazy">` : (ico || '📦')}</div><strong>${escN(nome)}</strong><small>${extra ? escN(extra) + ' · ' : ''}${n} produto${n === 1 ? '' : 's'}</small></button>`;
+}
+function navLista() {
+  const sec = SECCOES.find(x => x.id === navSec);
+  let l = sec ? products.filter(sec.filtro) : products.slice();
+  if (navEsp) l = l.filter(p => p.species === navEsp || p.species === 'ambos');
+  if (navMarca) l = l.filter(p => p.brand === navMarca);
+  if (navGama) l = l.filter(p => p.gama === navGama);
+  return l;
+}
+function irNav(sec, esp, marca, gama, semHist) {
+  navSec = sec || null; navEsp = esp || null; navMarca = marca || null; navGama = gama || null;
+  const si = document.getElementById('storeSearch'); if (si && si.value) { si.value = ''; currentSearch = ''; }
+  if (!semHist) try { history.pushState({ cat: 1, sec: navSec, esp: navEsp, marca: navMarca, gama: navGama }, ''); } catch (e) {}
+  renderProducts();
+  const nv = document.getElementById('catNav');
+  if (nv) { const top = nv.getBoundingClientRect().top + window.scrollY - 90; if (window.scrollY > top) window.scrollTo({ top, behavior: 'smooth' }); }
+}
+window.addEventListener('popstate', ev => { const st = ev.state || {}; if (st.cat) irNav(st.sec, st.esp, st.marca, st.gama, true); else irNav(null, null, null, null, true); });
+function navVoltar() {
+  if (history.state && history.state.cat) { history.back(); return; }
+  if (navGama) irNav(navSec, navEsp, navMarca);
+  else if (navMarca) irNav(navSec, navEsp);
+  else if (navEsp) irNav(navSec);
+  else irNav(null);
+}
 function renderProducts() {
+  const grid = document.getElementById('productGrid');
+  const nav = document.getElementById('catNav');
+  const q = (currentSearch || '').trim();
+  // Pesquisa: mostra resultados de todo o catálogo
+  if (q) {
+    nav.innerHTML = `<button class="voltar" onclick="irNav(null)">‹ Catálogo</button> Resultados para «<b>${escN(q)}</b>»`;
+    currentFilter = 'todos'; currentSpecies = 'todas'; currentBrand = null; currentGama = null; currentCondicao = null; currentCategoria = null;
+    renderProductsLista();
+    return;
+  }
+  // Início: mosaicos das secções
+  if (!navSec) {
+    nav.innerHTML = '';
+    grid.innerHTML = '<div class="tiles">' + SECCOES.map(x => { const l = products.filter(x.filtro); return l.length ? tileN(`irNav('${x.id}')`, x.nome, l, x.ico) : ''; }).join('') + '</div>';
+    return;
+  }
+  const sec = SECCOES.find(x => x.id === navSec);
+  const migalhas = [`<button class="voltar" onclick="navVoltar()">‹ Voltar</button>`, `<button onclick="irNav(null)">Catálogo</button>`];
+  const passos = [[sec.nome, `irNav('${navSec}')`]];
+  if (navEsp) passos.push([navEsp === 'cao' ? 'Cão' : 'Gato', `irNav('${navSec}',${jsArg(navEsp)})`]);
+  if (navMarca) passos.push([navMarca, `irNav('${navSec}',${jsArg(navEsp)},${jsArg(navMarca)})`]);
+  if (navGama) passos.push([navGama, '']);
+  passos.forEach((ps, i) => migalhas.push('› ' + (i === passos.length - 1 ? `<b>${escN(ps[0])}</b>` : `<button onclick="${ps[1]}">${escN(ps[0])}</button>`)));
+  nav.innerHTML = migalhas.join(' ');
+  const l = navLista();
+  // Dietas veterinárias: escolher primeiro cão ou gato
+  if (navSec === 'vet' && !navEsp) {
+    grid.innerHTML = '<div class="tiles">' + [['cao', 'Cão', '🐶'], ['gato', 'Gato', '🐱']].map(([e, nome, ico]) => { const le = l.filter(p => p.species === e || p.species === 'ambos'); return le.length ? tileN(`irNav('vet','${e}')`, nome, le, ico) : ''; }).join('') + '</div>';
+    return;
+  }
+  // Escolher a marca (se houver mais do que uma)
+  const marcas = [...new Set(l.map(p => p.brand).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'pt'));
+  if (!navMarca && marcas.length > 1) {
+    grid.innerHTML = '<div class="tiles">' + marcas.map(m => tileN(`irNav('${navSec}',${jsArg(navEsp)},${jsArg(m)})`, m, l.filter(p => p.brand === m), '🏷️')).join('') + '</div>';
+    return;
+  }
+  // Escolher a gama (se a marca tiver mais do que uma)
+  const gamas = [...new Set(l.map(p => p.gama).filter(Boolean))].sort((x, y) => ((ORDEM_GAMAS.indexOf(x) + 1) || 99) - ((ORDEM_GAMAS.indexOf(y) + 1) || 99) || x.localeCompare(y));
+  if (!navGama && gamas.length > 1) {
+    grid.innerHTML = '<div class="tiles">' + gamas.map(g => tileN(`irNav('${navSec}',${jsArg(navEsp)},${jsArg(navMarca || marcas[0])},${jsArg(g)})`, g, l.filter(p => p.gama === g), '🥣', navMarca || marcas[0])).join('') + '</div>';
+    return;
+  }
+  // Lista de produtos
+  currentFilter = sec.id === 'vet' ? 'racoes-vet' : 'racoes';
+  currentSpecies = navEsp || (sec.id === 'vet' ? 'todas' : sec.id);
+  currentBrand = navMarca || (marcas.length === 1 ? marcas[0] : null);
+  currentGama = navGama; currentCondicao = null; currentCategoria = null;
+  renderProductsLista();
+}
+
+function renderProductsLista() {
   const grid = document.getElementById('productGrid');
   const q = currentSearch.trim().toLowerCase();
   const list = interleaveByBrand(products.filter(p => {
